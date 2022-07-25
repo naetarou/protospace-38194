@@ -1,6 +1,6 @@
 class PrototypesController < ApplicationController
   def index
-    @prototypes = Prototype.all.includes(:user)
+    @prototypes = Prototype.all
   end
 
   def new
@@ -8,19 +8,18 @@ class PrototypesController < ApplicationController
   end
 
   def create
-
     @prototype = Prototype.new(prototype_params)
-    
     if @prototype.save
-      redirect_to root_path(@prototype)
+      redirect_to root_path
     else
       render :new
-      @prototype = Prototype.includes(:user)
     end
   end
 
   def show
-    @prototype = Prototype.find(params[:id])
+    @prototype = Prototype.find(params[:prototype_id] || params[:id])
+    @comment = Comment.new
+    @comments = @prototype.comments.includes(:user)
   end
 
   def edit
@@ -30,19 +29,22 @@ class PrototypesController < ApplicationController
   def update
     @prototype = Prototype.find(params[:id])
     if @prototype.update(prototype_params)
-     redirect_to prototype_path
+     redirect_to prototype_path(@prototype.id)
     else
       render :edit
     end 
   end
 
   def destroy
-    @prototype = Prototype.find(params[:id])
-    @prototype.destroy
-    redirect_to root_path
+    prototype = Prototype.find(params[:id])
+    if prototype.destroy
+    redirect_to root_path(@user)
+    end
   end
 
+
   private
+
   def prototype_params
     params.require(:prototype).permit(:title, :catch_copy, :concept, :image).merge(user_id: current_user.id)
   end
